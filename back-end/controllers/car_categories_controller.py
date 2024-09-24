@@ -3,7 +3,6 @@ from flask_cors import cross_origin
 from connector.mysql_connector import connection
 from models.car_categories import CarCategoryModel
 from models.users import UserModel
-from models.roles import RoleModel
 from sqlalchemy.orm import sessionmaker
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from cerberus import Validator
@@ -109,15 +108,3 @@ def show_category_by_id(id):
             data=str(e),
             status=500,
         )
-
-
-# @car_categories_blueprint.put("/car-categories/<int:id>")
-# @cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
-# def update_category(id):
-#     pass
-
-
-# @car_categories_blueprint.delete("/car-categories/<int:id>")
-# @cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
-# def delete_category(id):
-#     pass
