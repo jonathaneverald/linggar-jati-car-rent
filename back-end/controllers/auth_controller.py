@@ -45,7 +45,7 @@ def register():
 
         # Create new user, role id = 1 (admin), role id = 2 (customer)
         new_user = UserModel(
-            role_id=1,
+            role_id=2,
             email=email,
             name=name,
             address=address,
@@ -97,7 +97,7 @@ def login():
         access_token = create_access_token(identity=user.id)
 
         return ResponseHandler.success(
-            data={"message": "Login success!", "access_token": access_token},
+            data={"message": "Login success!", "access_token": access_token, "user": user.to_dictionaries()},
             status=200,
         )
 
