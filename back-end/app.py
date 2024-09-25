@@ -19,6 +19,7 @@ from connector.mysql_connector import connection
 from controllers.auth_controller import auth_blueprint, revoked_tokens
 from controllers.car_categories_controller import car_categories_blueprint
 from controllers.driver_controller import drivers_blueprint
+from controllers.cars_controller import cars_blueprint
 
 from flask_cors import CORS
 
@@ -56,6 +57,7 @@ def register_blueprints(app):
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(car_categories_blueprint)
     app.register_blueprint(drivers_blueprint)
+    app.register_blueprint(cars_blueprint)
 
 
 def init_login_manager(app):
