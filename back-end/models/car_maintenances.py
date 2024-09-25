@@ -12,7 +12,7 @@ class CarMaintenanceModel(db.Model):
     __tablename__ = "car_maintenances"
 
     id = mapped_column(Integer, primary_key=True)
-    car_id = mapped_column(Integer, ForeignKey("cars.id"), unique=True, nullable=False)
+    car_id = mapped_column(Integer, ForeignKey("cars.id"), unique=False, nullable=False)
     maintenance_date = mapped_column(Date, nullable=False)
     description = mapped_column(String(255), nullable=False)
     cost = mapped_column(DECIMAL(10, 2), nullable=False)

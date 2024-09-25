@@ -14,7 +14,7 @@ class CarModel(db.Model):
     __tablename__ = "cars"
 
     id = mapped_column(Integer, primary_key=True)
-    category_id = mapped_column(Integer, ForeignKey("car_categories.id"), unique=True, nullable=False)
+    category_id = mapped_column(Integer, ForeignKey("car_categories.id"), unique=False, nullable=False)
     slug = mapped_column(String(255), unique=True, nullable=False)
     name = mapped_column(String(255), nullable=False)
     transmission = mapped_column(String(255), nullable=False)

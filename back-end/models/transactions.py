@@ -13,9 +13,9 @@ class TransactionModel(db.Model):
     __tablename__ = "transactions"
 
     id = mapped_column(Integer, primary_key=True)
-    user_id = mapped_column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
-    car_id = mapped_column(Integer, ForeignKey("cars.id"), unique=True, nullable=False)
-    driver_id = mapped_column(Integer, ForeignKey("drivers.id"), unique=True, nullable=True)
+    user_id = mapped_column(Integer, ForeignKey("users.id"), unique=False, nullable=False)
+    car_id = mapped_column(Integer, ForeignKey("cars.id"), unique=False, nullable=False)
+    driver_id = mapped_column(Integer, ForeignKey("drivers.id"), unique=False, nullable=True)
     invoice = mapped_column(String(255), unique=True, nullable=False)
     start_date = mapped_column(Date, nullable=False)
     end_date = mapped_column(Date, nullable=False)

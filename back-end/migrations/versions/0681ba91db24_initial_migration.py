@@ -1,8 +1,8 @@
-"""Initial migration.
+"""Initial migration
 
-Revision ID: a2a6ab096422
+Revision ID: 0681ba91db24
 Revises: 
-Create Date: 2024-09-23 08:35:20.450586
+Create Date: 2024-09-25 13:56:21.661600
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a2a6ab096422'
+revision = '0681ba91db24'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -64,7 +64,6 @@ def upgrade():
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['category_id'], ['car_categories.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('category_id'),
     sa.UniqueConstraint('plate_number'),
     sa.UniqueConstraint('slug')
     )
@@ -91,8 +90,7 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['car_id'], ['cars.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('car_id')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('transactions',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -114,10 +112,7 @@ def upgrade():
     sa.ForeignKeyConstraint(['driver_id'], ['drivers.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('car_id'),
-    sa.UniqueConstraint('driver_id'),
-    sa.UniqueConstraint('invoice'),
-    sa.UniqueConstraint('user_id')
+    sa.UniqueConstraint('invoice')
     )
     # ### end Alembic commands ###
 
