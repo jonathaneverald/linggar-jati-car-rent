@@ -29,14 +29,14 @@ def create_app():
     app.config["JWT_SECRET_KEY"] = "your_jwt_secret_key"
     jwt = JWTManager(app)
 
-    # CORS(
-    #     app,
-    #     origins=["http://localhost:3000", "http://127.0.0.1:3000"],
-    #     supports_credentials=True,
-    #     methods=["*"],
-    #     resources={r"/*": {"origins": "*"}},
-    #     allow_headers=["Content-Type", "Authorization", "XCSRF-Token"],
-    # )
+    CORS(
+        app,
+        origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+        supports_credentials=True,
+        methods=["*"],
+        resources={r"/*": {"origins": "*"}},
+        allow_headers=["Content-Type", "Authorization", "XCSRF-Token"],
+    )
 
     @jwt.token_in_blocklist_loader
     def check_if_token_revoked(jwt_header, jwt_payload):
