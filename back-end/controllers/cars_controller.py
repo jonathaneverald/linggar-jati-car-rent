@@ -13,6 +13,9 @@ import os
 import cloudinary
 import cloudinary.uploader
 from slugify import slugify
+from math import ceil
+from sqlalchemy import or_
+
 
 cars_blueprint = Blueprint("cars_blueprint", __name__)
 
@@ -137,9 +140,58 @@ def create_car():
 @jwt_required()
 def show_all_car():
     try:
-        cars = (CarModel).query.all()
-        cars_list = [car.to_dictionaries() for car in cars]
-        return ResponseHandler.success(data=cars_list, status=200)
+        # Get query parameters for pagination
+        page = request.args.get("page", default=None, type=int)
+        per_page = request.args.get("per_page", default=None, type=int)
+
+        # Get query parameters for search filters
+        car_brand = request.args.get("car_brand", default=None, type=str)
+        car_type = request.args.get("type", default=None, type=str)
+
+        car_query = CarModel.query.join(CarCategoryModel, CarModel.category_id == CarCategoryModel.id).add_columns(
+            CarCategoryModel.car_brand, CarCategoryModel.type
+        )
+
+        # Apply search filters
+        if car_brand:
+            car_query = car_query.filter(CarCategoryModel.car_brand.ilike(f"%{car_brand}%"))
+        if car_type:
+            car_query = car_query.filter(CarCategoryModel.type.ilike(f"%{car_type}%"))
+
+        # Apply pagination
+        if page and per_page:
+            pagination = car_query.paginate(page=page, per_page=per_page, error_out=False)
+            cars = pagination.items
+            total_cars = car_query.count()
+            total_pages = ceil(total_cars / per_page)
+        else:
+            cars = car_query.all()
+
+        # Create a list of car dictionaries
+        cars_list = []
+        for car, car_brand, car_type in cars:
+            car_dict = {
+                **{column.name: getattr(car, column.name) for column in CarModel.__table__.columns},
+                "car_brand": car_brand,
+                "type": car_type,
+            }
+            cars_list.append(car_dict)
+
+        if page and per_page:
+            response = {
+                "data": cars_list,
+                "pagination": {
+                    "total_cars": total_cars,
+                    "current_page": page,
+                    "total_pages": total_pages,
+                    "next_page": page + 1 if page < total_pages else None,
+                    "prev_page": page - 1 if page > 1 else None,
+                },
+            }
+        else:
+            response = {"data": cars_list}
+
+        return ResponseHandler.success(data=response, status=200)
 
     except Exception as e:
         return ResponseHandler.error(
@@ -149,18 +201,32 @@ def show_all_car():
         )
 
 
-@cars_blueprint.get("/cars/<int:car_id>")
+@cars_blueprint.get("/cars/<slug>")
 @cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
 @jwt_required()
-def show_car_by_id(car_id):
+def show_car_by_slug(slug):
     try:
-        car = (CarModel).query.filter_by(id=car_id).first()
-        if not car:
+        car_result = (
+            CarModel.query.join(CarCategoryModel, CarModel.category_id == CarCategoryModel.id)
+            .add_columns(CarCategoryModel.car_brand, CarCategoryModel.type)
+            .filter(CarModel.slug == slug)
+            .first()
+        )
+
+        if not car_result:
             return ResponseHandler.error(message="Car not found!", data=None, status=404)
+
+        car, car_brand, car_type = car_result
+
+        car_dict = {
+            **{column.name: getattr(car, column.name) for column in CarModel.__table__.columns},
+            "car_brand": car_brand,
+            "type": car_type,
+        }
 
         return ResponseHandler.success(
             message="Car retrieved successfully",
-            data=car.to_dictionaries(),
+            data=car_dict,
             status=200,
         )
 
