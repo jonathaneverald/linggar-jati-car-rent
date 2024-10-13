@@ -26,7 +26,7 @@ class CarMaintenanceModel(db.Model):
         return {
             "id": self.id,
             "car_id": self.car_id,
-            "maintenance_data": self.maintenance_date,
+            "maintenance_date": self.maintenance_date,
             "description": self.description,
             "cost": self.cost,
             "created_at": self.created_at,
