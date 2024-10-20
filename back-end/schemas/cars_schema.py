@@ -9,7 +9,12 @@ add_car_schema = {
     "capacity": {"type": "integer", "required": True},
     "registration_number": {"type": "integer", "required": True},
     "price": {"type": "float", "required": True},
-    "status": {"type": "string", "maxlength": 50, "allowed": ["Available", "Unavailable", "Rented"], "required": True},
+    "status": {
+        "type": "string",
+        "maxlength": 50,
+        "allowed": ["Available", "Unavailable", "Rented", "Booked"],
+        "required": True,
+    },
 }
 
 update_car_schema = {
@@ -26,7 +31,7 @@ update_car_schema = {
     "status": {
         "type": "string",
         "maxlength": 50,
-        "allowed": ["Available", "Unavailable", "Rented"],
+        "allowed": ["Available", "Unavailable", "Rented", "Booked"],
         "required": False,
     },
 }
