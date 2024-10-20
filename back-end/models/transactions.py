@@ -22,7 +22,7 @@ class TransactionModel(db.Model):
     return_date = mapped_column(Date, nullable=True)
     rental_status = mapped_column(String(255), nullable=False)
     payment_status = mapped_column(String(255), nullable=False)
-    payment_proof = mapped_column(String(255), nullable=False)
+    payment_proof = mapped_column(String(255), nullable=True)
     late_fee = mapped_column(DECIMAL(10, 2), nullable=True)
     total_cost = mapped_column(DECIMAL(10, 2), nullable=False)
     created_at = mapped_column(DateTime, default=gmt_plus_7_now, nullable=False)
