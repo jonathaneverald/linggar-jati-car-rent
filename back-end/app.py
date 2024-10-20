@@ -21,6 +21,7 @@ from controllers.car_categories_controller import car_categories_blueprint
 from controllers.driver_controller import drivers_blueprint
 from controllers.cars_controller import cars_blueprint
 from controllers.car_maintenances_controller import car_maintenances_blueprint
+from controllers.transactions_controller import transactions_blueprint
 
 from flask_cors import CORS
 
@@ -60,6 +61,7 @@ def register_blueprints(app):
     app.register_blueprint(drivers_blueprint)
     app.register_blueprint(cars_blueprint)
     app.register_blueprint(car_maintenances_blueprint)
+    app.register_blueprint(transactions_blueprint)
 
 
 def init_login_manager(app):
