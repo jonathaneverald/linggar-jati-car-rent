@@ -18,6 +18,7 @@ python-slugify = "*"
 flask-cors = "*"
 cloudinary = "*"
 cerberus = "*"
+openpyxl = "*"
 
 [dev-packages]
 
