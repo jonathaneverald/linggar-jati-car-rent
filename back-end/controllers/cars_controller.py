@@ -141,8 +141,8 @@ def create_car():
 def show_all_car():
     try:
         # Get query parameters for pagination
-        page = request.args.get("page", default=None, type=int)
-        per_page = request.args.get("per_page", default=None, type=int)
+        page = request.args.get("page", default=1, type=int)
+        per_page = request.args.get("per_page", default=5, type=int)
 
         # Get query parameters for search filters
         car_brand = request.args.get("car_brand", default=None, type=str)
