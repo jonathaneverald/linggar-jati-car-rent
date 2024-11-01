@@ -6,6 +6,7 @@ from flask_cors import cross_origin
 from connector.mysql_connector import connection
 from models.users import UserModel
 from models.cars import CarModel
+from models.car_categories import CarCategoryModel
 from models.drivers import DriverModel
 from models.transactions import TransactionModel
 from sqlalchemy.orm import sessionmaker
@@ -130,6 +131,218 @@ def create_transaction():
 
     finally:
         s.close()
+
+
+@transactions_blueprint.get("/transactions/customer")
+@cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
+@jwt_required()
+# Show transactions belongs to current customer
+def show_customer_transaction():
+    user_id = get_jwt_identity()
+    try:
+        current_user = UserModel.query.filter_by(id=user_id).first()
+        if not current_user:
+            return ResponseHandler.error(message="User not found", status=404)
+
+        # Get query parameters for pagination
+        page = request.args.get("page", default=1, type=int)
+        per_page = request.args.get("per_page", default=5, type=int)
+
+        # Check the transactions belongs to the current user
+        transactions = TransactionModel.query.filter_by(user_id=user_id).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        if not transactions:
+            return ResponseHandler.error(message="No transactions found", status=404)
+
+        # Prepare transactions data
+        transactions_data = []
+        for transaction in transactions:
+            # Retrieve the car information for this transactiion
+            car_info = CarModel.query.filter_by(id=transaction.car_id).first()
+            category_info = CarCategoryModel.query.filter_by(id=car_info.category_id).first()
+            car_data = {
+                "car_slug": car_info.slug,
+                "car_name": car_info.name,
+                "car_price": car_info.price,
+                "car_image": car_info.image,
+                "car_brand": category_info.car_brand,
+                "car_type": category_info.type,
+            }
+
+            # Retrieve the driver information for this transaction if there's any
+            driver_data = None
+            driver_info = DriverModel.query.filter_by(id=transaction.driver_id).first()
+            if driver_info:
+                driver_data = {"driver_name": driver_info.name, "driver_phone_number": driver_info.phone_number}
+
+            # Append datas into transactions_data
+            transactions_data.append(
+                {
+                    **{
+                        column.name: getattr(transaction, column.name) for column in TransactionModel.__table__.columns
+                    },
+                    "car_data": car_data,
+                    "driver_data": driver_data,
+                }
+            )
+
+        response_data = {
+            "transactions": transactions_data,
+            "pagination": {
+                "total_transactions": transactions.total,
+                "current_page": transactions.page,
+                "total_pages": transactions.pages,
+                "next_page": page + 1 if page < transactions.pages else None,
+                "prev_page": page - 1 if page > 1 else None,
+            },
+        }
+
+        return ResponseHandler.success(data=response_data, status=200)
+
+    except Exception as e:
+        return ResponseHandler.error(
+            message="An error occured while showing transactions",
+            data=str(e),
+            status=500,
+        )
+
+
+@transactions_blueprint.get("/transactions/admin")
+@cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
+@jwt_required()
+# Only admin can show all transactions
+def show_all_transaction():
+    user_id = get_jwt_identity()
+    try:
+        current_user = UserModel.query.filter_by(id=user_id).first()
+        if not current_user:
+            return ResponseHandler.error(message="User not found", status=404)
+
+        # Check if the current user's role is "admin"
+        if current_user.role_id != 1:
+            return ResponseHandler.error(message="Unauthorized access, only admin can access this!", status=403)
+
+        # Get query parameters for pagination
+        page = request.args.get("page", default=1, type=int)
+        per_page = request.args.get("per_page", default=5, type=int)
+
+        # Get query parameters for search filters
+        rental_status = request.args.get("rental_status", default=None, type=str)
+        payment_status = request.args.get("payment_status", default=None, type=str)
+
+        query = TransactionModel.query
+
+        # Apply search filters
+        if rental_status:
+            query = query.filter(TransactionModel.rental_status.ilike(f"%{rental_status}%"))
+
+        if payment_status:
+            query = query.filter(TransactionModel.payment_status.ilike(f"%{payment_status}%"))
+
+        transactions = query.paginate(page=page, per_page=per_page, error_out=False)
+        if not transactions:
+            return ResponseHandler.error(message="No transactions found", status=404)
+
+        # Prepare transactions data
+        transactions_data = []
+        for transaction in transactions:
+            # Retrieve the car information for this transactiion
+            car_info = CarModel.query.filter_by(id=transaction.car_id).first()
+            category_info = CarCategoryModel.query.filter_by(id=car_info.category_id).first()
+            car_data = {
+                "car_slug": car_info.slug,
+                "car_name": car_info.name,
+                "car_price": car_info.price,
+                "car_image": car_info.image,
+                "car_brand": category_info.car_brand,
+                "car_type": category_info.type,
+            }
+
+            # Retrieve the driver information for this transaction if there's any
+            driver_data = None
+            driver_info = DriverModel.query.filter_by(id=transaction.driver_id).first()
+            if driver_info:
+                driver_data = {"driver_name": driver_info.name, "driver_phone_number": driver_info.phone_number}
+
+            # Append datas into transactions_data
+            transactions_data.append(
+                {
+                    **{
+                        column.name: getattr(transaction, column.name) for column in TransactionModel.__table__.columns
+                    },
+                    "car_data": car_data,
+                    "driver_data": driver_data,
+                }
+            )
+
+        response_data = {
+            "transactions": transactions_data,
+            "pagination": {
+                "total_transactions": transactions.total,
+                "current_page": transactions.page,
+                "total_pages": transactions.pages,
+                "next_page": page + 1 if page < transactions.pages else None,
+                "prev_page": page - 1 if page > 1 else None,
+            },
+        }
+
+        return ResponseHandler.success(data=response_data, status=200)
+
+    except Exception as e:
+        return ResponseHandler.error(
+            message="An error occured while showing transactions",
+            data=str(e),
+            status=500,
+        )
+
+
+@transactions_blueprint.get("/transactions/<int:transaction_id>")
+@cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
+@jwt_required()
+def show_transaction_by_id(transaction_id):
+    user_id = get_jwt_identity()
+    try:
+        current_user = UserModel.query.filter_by(id=user_id).first()
+        if not current_user:
+            return ResponseHandler.error(message="User not found", status=404)
+
+        transaction = TransactionModel.query.filter_by(id=transaction_id).first()
+        if not transaction:
+            return ResponseHandler.error(message="No transactions found", status=404)
+
+        # Retrieve the car information for this transactiion
+        car_info = CarModel.query.filter_by(id=transaction.car_id).first()
+        category_info = CarCategoryModel.query.filter_by(id=car_info.category_id).first()
+        car_data = {
+            "car_slug": car_info.slug,
+            "car_name": car_info.name,
+            "car_price": car_info.price,
+            "car_image": car_info.image,
+            "car_brand": category_info.car_brand,
+            "car_type": category_info.type,
+        }
+
+        # Retrieve the driver information for this transaction if there's any
+        driver_data = None
+        driver_info = DriverModel.query.filter_by(id=transaction.driver_id).first()
+        if driver_info:
+            driver_data = {"driver_name": driver_info.name, "driver_phone_number": driver_info.phone_number}
+
+        transaction_data = {
+            **{column.name: getattr(transaction, column.name) for column in TransactionModel.__table__.columns},
+            "car_data": car_data,
+            "driver_data": driver_data,
+        }
+
+        return ResponseHandler.success(data=transaction_data, status=200)
+
+    except Exception as e:
+        return ResponseHandler.error(
+            message="An error occured while showing transaction",
+            data=str(e),
+            status=500,
+        )
 
 
 @transactions_blueprint.put("/transactions/upload-payment-proof/<int:transaction_id>")
