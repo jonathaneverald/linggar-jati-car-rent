@@ -11,43 +11,54 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import useRegister from "@/hooks/useRegister";
+
+const FormSchema = z.object({
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters long"),
+    address: z.string().min(5, "Address must be at least 5 characters long"),
+    phone_number: z.string().min(10, "Phone number must be at least 10 digits long"),
+});
+
+type FormData = z.infer<typeof FormSchema>;
+
 const RegisterPage: React.FC = () => {
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        password: "",
-        address: "",
-        phoneNumber: "",
+    const { onSubmit, loading, error, success } = useRegister();
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<FormData>({
+        resolver: zodResolver(FormSchema),
     });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError(null);
-
+    const handleFormSubmit = async (data: FormData) => {
         try {
-            // Add your registration logic here
-            // For example:
-            // await register(formData);
-            // router.push("/login");
-
-            console.log("Registration attempt with:", formData);
-        } catch (err) {
-            setError("Registration failed. Please try again.");
-        } finally {
-            setIsLoading(false);
+            await onSubmit(data);
+            if (success) {
+                reset(); // Reset form after successful submission
+            }
+        } catch (error) {
+            console.error("Registration error:", error);
         }
     };
 
-    const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // Only allow numbers and plus symbol
-        const value = e.target.value.replace(/[^\d+]/g, "");
-        setFormData({ ...formData, phoneNumber: value });
-    };
+    React.useEffect(() => {
+        if (success) {
+            const timer = setTimeout(() => {
+                router.push("/login");
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [success, router]);
 
     return (
         <>
@@ -63,10 +74,16 @@ const RegisterPage: React.FC = () => {
                         <CardDescription className="text-center">Enter your details to register</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                             {error && (
                                 <Alert variant="destructive">
                                     <AlertDescription>{error}</AlertDescription>
+                                </Alert>
+                            )}
+
+                            {success && (
+                                <Alert className="border-green-500 bg-green-50">
+                                    <AlertDescription className="text-green-600">Registration successful! Redirecting to login...</AlertDescription>
                                 </Alert>
                             )}
 
@@ -75,8 +92,9 @@ const RegisterPage: React.FC = () => {
                                 <Label htmlFor="name">Full Name</Label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                    <Input id="name" type="text" placeholder="Enter your full name" className="pl-9" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+                                    <Input {...register("name")} id="name" type="text" placeholder="Enter your full name" className="pl-9" />
                                 </div>
+                                {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
                             </div>
 
                             {/* Email Field */}
@@ -84,8 +102,9 @@ const RegisterPage: React.FC = () => {
                                 <Label htmlFor="email">Email</Label>
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                    <Input id="email" type="email" placeholder="Enter your email" className="pl-9" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+                                    <Input {...register("email")} id="email" type="email" placeholder="Enter your email" className="pl-9" />
                                 </div>
+                                {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
                             </div>
 
                             {/* Password Field */}
@@ -93,11 +112,12 @@ const RegisterPage: React.FC = () => {
                                 <Label htmlFor="password">Password</Label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                    <Input id="password" type={showPassword ? "text" : "password"} placeholder="Create a password" className="pl-9" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
+                                    <Input {...register("password")} id="password" type={showPassword ? "text" : "password"} placeholder="Create a password" className="pl-9" />
                                     <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowPassword(!showPassword)}>
                                         {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
                                     </Button>
                                 </div>
+                                {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
                             </div>
 
                             {/* Address Field */}
@@ -105,21 +125,23 @@ const RegisterPage: React.FC = () => {
                                 <Label htmlFor="address">Address</Label>
                                 <div className="relative">
                                     <Home className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                    <Input id="address" type="text" placeholder="Enter your address" className="pl-9" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} required />
+                                    <Input {...register("address")} id="address" type="text" placeholder="Enter your address" className="pl-9" />
                                 </div>
+                                {errors.address && <p className="text-sm text-red-500">{errors.address.message}</p>}
                             </div>
 
                             {/* Phone Number Field */}
                             <div className="space-y-2">
-                                <Label htmlFor="phoneNumber">Phone Number</Label>
+                                <Label htmlFor="phone_number">Phone Number</Label>
                                 <div className="relative">
                                     <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                    <Input id="phoneNumber" type="tel" placeholder="Enter your phone number" className="pl-9" value={formData.phoneNumber} onChange={handlePhoneNumberChange} required />
+                                    <Input {...register("phone_number")} id="phone_number" type="tel" placeholder="Enter your phone number" className="pl-9" />
                                 </div>
+                                {errors.phone_number && <p className="text-sm text-red-500">{errors.phone_number.message}</p>}
                             </div>
 
-                            <Button className="w-full" type="submit" disabled={isLoading}>
-                                {isLoading ? "Creating account..." : "Register"}
+                            <Button className="w-full" type="submit" disabled={loading}>
+                                {loading ? "Creating account..." : "Register"}
                             </Button>
                         </form>
                     </CardContent>
