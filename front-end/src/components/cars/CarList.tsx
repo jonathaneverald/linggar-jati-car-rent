@@ -1,42 +1,42 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
 import CarCard from "@/components/card/CarCard";
 import { Car } from "@/types/car";
 import CarCardLoading from "@/components/loading/CarCardLoading";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import useFetchCars from "@/hooks/useFetchCars";
-import Header from "../layouts/Header";
-import Footer from "../layouts/Footer";
 
 const CarList = () => {
     const router = useRouter();
-    const { car_brand, type, page = 1, per_page = 12 } = router.query;
-
+    const { car_brand, type, page = 1, per_page = 8 } = router.query;
     const [currentPage, setCurrentPage] = useState<number>(Number(page));
+    const initialFetchDone = useRef(false); // To track initial fetch and prevent unnecessary updates
 
-    const params = {
-        page: currentPage,
-        per_page: Number(per_page),
-        car_brand: car_brand as string,
-        type: type as string,
-    };
+    // Memoize params to prevent unnecessary re-fetching
+    const params = useMemo(
+        () => ({
+            page: currentPage,
+            per_page: Number(per_page),
+            car_brand: car_brand as string,
+            type: type as string,
+        }),
+        [currentPage, per_page, car_brand, type]
+    );
 
     // Use the hook with params object
     const { cars, pagination, isLoading, isError } = useFetchCars(params);
 
     useEffect(() => {
-        if (Number(page) !== currentPage) {
-            setCurrentPage(Number(page));
+        if (!initialFetchDone.current) {
+            initialFetchDone.current = true;
+            return;
         }
-    }, [page]);
 
-    useEffect(() => {
-        if (Number(page) !== currentPage) {
-            router.push({
-                pathname: router.pathname,
-                query: { ...router.query, page: currentPage },
-            });
-        }
+        // Update router query only if the current page changes after the initial render
+        router.push({
+            pathname: router.pathname,
+            query: { ...router.query, page: currentPage },
+        });
     }, [currentPage]);
 
     const handlePageChange = (page: number) => {
@@ -59,7 +59,6 @@ const CarList = () => {
 
     return (
         <div className="min-h-screen flex flex-col">
-            <Header />
             <main className="flex-grow max-w-7xl mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {cars.map((car: Car) => (
@@ -115,7 +114,6 @@ const CarList = () => {
                     </Pagination>
                 </div>
             </main>
-            <Footer />
         </div>
     );
 };
