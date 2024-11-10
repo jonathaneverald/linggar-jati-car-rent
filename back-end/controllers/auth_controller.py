@@ -203,7 +203,7 @@ def update_profile():
 
         s.commit()
 
-        return ResponseHandler.success(data=user.to_dictionaries(), status=201)
+        return ResponseHandler.success(data=user.to_dictionaries(), status=200)
 
     except Exception as e:
         s.rollback()
