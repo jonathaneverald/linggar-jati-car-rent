@@ -3,7 +3,7 @@ import CarList from "@/components/cars/CarList";
 // import dynamic from "next/dynamic";
 import React from "react";
 
-const Products: React.FC = () => {
+const Cars: React.FC = () => {
     return (
         <div className="bg-gray-50 min-h-screen">
             <CarList />
@@ -11,4 +11,4 @@ const Products: React.FC = () => {
     );
 };
 
-export default Products;
+export default Cars;

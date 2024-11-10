@@ -2,6 +2,7 @@ import { getToken } from "@/utils/tokenUtils";
 import useSWR from "swr";
 import useDebounce from "./useDebounce";
 import axios from "axios";
+import { useEffect } from "react";
 
 type fetchCarsParams = {
     page: number;
@@ -11,12 +12,12 @@ type fetchCarsParams = {
 };
 
 const fetcher = async (url: string) => {
-    // const token = getToken();
+    const token = getToken();
 
     const response = await axios.get(url, {
-        // headers: {
-        //     Authorization: `Bearer ${token}`,
-        // },
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
     });
 
     return response.data;
@@ -42,8 +43,18 @@ const useFetchCars = (params: fetchCarsParams) => {
     // Create URL only after params are debounced
     const url = buildUrl(debouncedParams);
 
-    // Use SWR with the debounced URL
-    const { data, error } = useSWR(url, fetcher);
+    // Use SWR with the debounced URL and configured options
+    const { data, error } = useSWR(url, fetcher, {
+        revalidateOnFocus: false, // prevent refetching on window focus
+        revalidateOnReconnect: false, // prevent refetching on reconnect
+        refreshWhenHidden: false, // avoid refreshing in the background
+        dedupingInterval: 5000, // avoid repeated fetches within 5 seconds
+    });
+
+    // Debugging console log to track fetch occurrences
+    useEffect(() => {
+        console.log("Fetching cars data from:", url);
+    }, [url]);
 
     return {
         cars: data?.data?.data || [],
