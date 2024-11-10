@@ -102,6 +102,23 @@ def show_all_driver():
         )
 
 
+@drivers_blueprint.get("/drivers-available")
+@cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
+@jwt_required()
+def show_all_available_driver():
+    try:
+        drivers = (DriverModel).query.filter(DriverModel.status.ilike("Available")).all()
+        drivers_list = [driver.to_dictionaries() for driver in drivers]
+        return ResponseHandler.success(data=drivers_list, status=200)
+
+    except Exception as e:
+        return ResponseHandler.error(
+            message="An error occured while showing drivers",
+            data=str(e),
+            status=500,
+        )
+
+
 @drivers_blueprint.get("/drivers/<int:driver_id>")
 @cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
 @jwt_required()
