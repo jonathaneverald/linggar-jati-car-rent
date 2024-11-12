@@ -7,7 +7,7 @@ import Layout from "@/components/Layout";
 
 export default function App({ Component, pageProps }: AppProps) {
     const router = useRouter();
-    const excludeLayout = router.pathname === "/login" || router.pathname === "/register" || router.pathname === "/404";
+    const excludeLayout = router.pathname === "/login" || router.pathname === "/register" || router.pathname === "/404" || router.pathname === "/";
     return (
         <Provider store={store}>
             {!excludeLayout ? (
