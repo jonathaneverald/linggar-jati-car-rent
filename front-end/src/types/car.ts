@@ -9,6 +9,19 @@ export interface CarCardProps {
     price: number;
 }
 
+export interface CarCardDetailProps {
+    type: string;
+    car_brand: string;
+    car_name: string;
+    image: string;
+    status: string;
+    color: string;
+    transmission: string;
+    price: number;
+    fuel: string;
+    capacity: number;
+}
+
 export interface Car {
     id: string;
     category_id: string;
@@ -25,4 +38,9 @@ export interface Car {
     status: string;
     transmission: string;
     type: string;
+}
+
+export interface CarDetailsProps {
+    car?: Car;
+    error?: string;
 }

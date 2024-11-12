@@ -26,6 +26,7 @@ const CarList = () => {
     // Use the hook with params object
     const { cars, pagination, isLoading, isError } = useFetchCars(params);
 
+    console.log(cars, "Cars");
     useEffect(() => {
         if (!initialFetchDone.current) {
             initialFetchDone.current = true;
