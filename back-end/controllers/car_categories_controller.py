@@ -74,6 +74,7 @@ def create_category():
 
 @car_categories_blueprint.get("/car-categories")
 @cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
+@jwt_required()
 def show_all_category():
     try:
         car_categories = (CarCategoryModel).query.all()
