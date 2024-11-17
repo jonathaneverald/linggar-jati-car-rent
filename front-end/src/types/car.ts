@@ -22,6 +22,12 @@ export interface CarCardDetailProps {
     capacity: number;
 }
 
+export interface CarCategories {
+    id: string;
+    car_brand: string;
+    type: string;
+}
+
 export interface Car {
     id: string;
     category_id: string;
@@ -38,6 +44,18 @@ export interface Car {
     status: string;
     transmission: string;
     type: string;
+}
+
+export interface CategoriesData {
+    data: CarCategories[];
+}
+
+export interface UseCategoriesReturn {
+    categories: CarCategories[];
+    loading: boolean;
+    error: string | null;
+    uniqueBrands: string[];
+    uniqueTypes: string[];
 }
 
 export interface CarDetailsProps {
