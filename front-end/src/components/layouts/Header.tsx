@@ -29,7 +29,7 @@ const Header = () => {
                 </Link>
                 <div className="flex gap-4">
                     <Button variant="outline" className="flex items-center gap-2" asChild>
-                        <Link href="/transactions">
+                        <Link href="/transactions-customer">
                             <span>Transaction</span>
                         </Link>
                     </Button>
