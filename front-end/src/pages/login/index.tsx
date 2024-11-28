@@ -50,8 +50,14 @@ const LoginPage: React.FC = () => {
 
         if (response) {
             setToken(response.data.access_token);
+            const role = response.data.user.role_id;
+
             await fetchUserData();
-            router.push("/cars");
+            if (role == 1) {
+                router.push("/admin/dashboard");
+            } else {
+                router.push("/cars");
+            }
         }
     };
 

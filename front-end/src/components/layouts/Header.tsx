@@ -5,7 +5,6 @@ import Link from "next/link";
 import ProfileModal from "../profile/ProfileModal";
 import useUserProfile from "@/hooks/useAuthenticatedUser";
 import useLogout from "@/hooks/useLogout";
-import { useUpdateProfile } from "@/hooks/useUpdateProfile";
 
 const Header = () => {
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -21,6 +20,29 @@ const Header = () => {
         setIsProfileModalOpen(false); // Close the modal after profile update
     };
 
+    // Determine the appropriate button based on user role
+    const renderRoleBasedButton = () => {
+        // If loading or user is not yet loaded, return null or a placeholder
+        if (isLoading || !user) {
+            return null;
+        }
+
+        // Render dashboard for admin (role 1), transactions for others
+        return user.role_id === 1 ? (
+            <Button variant="outline" className="flex items-center gap-2" asChild>
+                <Link href="/admin/dashboard">
+                    <span>Dashboard</span>
+                </Link>
+            </Button>
+        ) : (
+            <Button variant="outline" className="flex items-center gap-2" asChild>
+                <Link href="/transactions-customer">
+                    <span>Transaction</span>
+                </Link>
+            </Button>
+        );
+    };
+
     return (
         <header className="bg-white shadow-sm">
             <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
@@ -28,11 +50,7 @@ const Header = () => {
                     <div className="text-2xl font-bold text-gray-800">Linggar Jati Car Rent</div>
                 </Link>
                 <div className="flex gap-4">
-                    <Button variant="outline" className="flex items-center gap-2" asChild>
-                        <Link href="/transactions-customer">
-                            <span>Transaction</span>
-                        </Link>
-                    </Button>
+                    {renderRoleBasedButton()}
                     <Button variant="outline" className="flex items-center gap-2" onClick={toggleProfileModal}>
                         <User className="w-4 h-4" />
                         <span>Profile</span>

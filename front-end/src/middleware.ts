@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
             return redirectToLogin(request);
         }
 
-        if (isStoreRoute(request) && !isSellerRole(userData.role)) {
+        if (isAdminRoute(request) && !isAdminRole(userData.role_id)) {
             return new NextResponse("Access denied", { status: 403 });
         }
 
@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
     }
 }
 
-async function validateToken(token: string): Promise<{ role: string } | null> {
+async function validateToken(token: string): Promise<{ role_id: number } | null> {
     const response = await fetch("http://127.0.0.1:5000/profile", {
         headers: { Authorization: `Bearer ${token}` },
     });
@@ -44,12 +44,12 @@ function isAuthPage(request: NextRequest): boolean {
     return ["/login", "/register"].includes(request.nextUrl.pathname);
 }
 
-function isStoreRoute(request: NextRequest): boolean {
-    return request.nextUrl.pathname.startsWith("/stores/");
+function isAdminRoute(request: NextRequest): boolean {
+    return request.nextUrl.pathname.startsWith("/admin/");
 }
 
-function isSellerRole(role: string): boolean {
-    return role === "seller";
+function isAdminRole(role_id: number): boolean {
+    return role_id == 1;
 }
 
 function redirectToLogin(request: NextRequest): NextResponse {
