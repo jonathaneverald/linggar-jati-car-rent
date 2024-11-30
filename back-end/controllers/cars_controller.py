@@ -83,16 +83,16 @@ def create_car():
         category_id = car_category.id
         slug = CarModel.generate_slug(data["name"])
         # Get the uploaded files from the request
-        files = request.files.getlist("image")
-        if not files:
-            return ResponseHandler.error(message="Image is required", status=400)
+        # files = request.files.getlist("image")
+        # if not files:
+        #     return ResponseHandler.error(message="Image is required", status=400)
 
-        image_urls = []
+        # image_urls = []
 
-        for file in files:
-            upload_result = cloudinary.uploader.upload(file)
-            image_url = upload_result["secure_url"]
-            image_urls.append(image_url)
+        # for file in files:
+        #     upload_result = cloudinary.uploader.upload(file)
+        #     image_url = upload_result["secure_url"]
+        #     image_urls.append(image_url)
 
         new_car = CarModel(
             category_id=category_id,
@@ -105,15 +105,10 @@ def create_car():
             capacity=data["capacity"],
             registration_number=data["registration_number"],
             price=data["price"],
-            image=image_urls[0] if image_urls else None,  # Save the first image
+            # image=image_urls[0] if image_urls else None,  # Save the first image
             status=data["status"],
         )
         s.add(new_car)
-
-        # # Add all images to the CarModel (if needed)
-        # for image_url in image_urls:
-        #     car_image = CarModel(image=image_url)
-        #     s.add(car_image)
 
         s.commit()
 
@@ -127,6 +122,67 @@ def create_car():
         s.rollback()
         return ResponseHandler.error(
             message="An error occurred while adding the car",
+            data=str(e),
+            status=500,
+        )
+
+    finally:
+        s.close()
+
+
+@cars_blueprint.put("/cars/upload-image/<int:car_id>")
+@cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
+@jwt_required()
+# Only admin can upload car image
+def upload_car_image(car_id):
+    Session = sessionmaker(bind=connection)
+    s = Session()
+    s.begin()
+
+    try:
+        user_id = get_jwt_identity()
+        current_user = s.query(UserModel).filter_by(id=user_id).first()
+        if not current_user:
+            return ResponseHandler.error(message="User not found", status=404)
+
+        # Check if the current user's role is "admin"
+        if current_user.role_id != 1:
+            return ResponseHandler.error(message="Unauthorized access, only customer can access this!", status=403)
+
+        # Check transaction's data in database
+        car = s.query(CarModel).filter_by(id=car_id).first()
+        if not car:
+            return ResponseHandler.error(message="Car not found!", status=404)
+
+        # Check if the car image is exists
+        if car.image not in [None, ""]:
+            return ResponseHandler.error(message="Car image already exists!", status=400)
+
+        # Get the uploaded files from the request
+        files = request.files.getlist("image")
+        if not files:
+            return ResponseHandler.error(message="Car Image is required", status=400)
+
+        image_urls = []
+
+        for file in files:
+            upload_result = cloudinary.uploader.upload(file)
+            image_url = upload_result["secure_url"]
+            image_urls.append(image_url)
+
+        car.image = image_urls[0]
+        s.commit()
+
+        return ResponseHandler.success(
+            message="Car Image successfully added!",
+            data=car.to_dictionaries(),
+            status=200,
+        )
+
+    except Exception as e:
+        s.rollback()
+        return ResponseHandler.error(
+            message="An error occurred while uploading the payment proof",
             data=str(e),
             status=500,
         )

@@ -24,7 +24,7 @@ class CarModel(db.Model):
     capacity = mapped_column(Integer, nullable=False)
     registration_number = mapped_column(Integer, nullable=False)
     price = mapped_column(DECIMAL(10, 2), nullable=False)
-    image = mapped_column(String(255), nullable=False)
+    image = mapped_column(String(255), nullable=True)
     status = mapped_column(String(255), nullable=False)
     created_at = mapped_column(DateTime, default=gmt_plus_7_now, nullable=False)
     updated_at = mapped_column(DateTime, default=gmt_plus_7_now, onupdate=gmt_plus_7_now, nullable=False)
