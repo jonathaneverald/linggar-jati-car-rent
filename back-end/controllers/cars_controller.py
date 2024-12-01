@@ -464,8 +464,14 @@ def delete_car(car_id):
             )
 
         # Delete the image from Cloudinary
-        public_id = os.path.splitext(os.path.basename(car.image))[0]
-        cloudinary.uploader.destroy(public_id)
+        # Only try to delete the image if it exists
+        if car.image:
+            try:
+                public_id = os.path.splitext(os.path.basename(car.image))[0]
+                cloudinary.uploader.destroy(public_id)
+            except Exception as img_error:
+                # Log the error but continue with car deletion
+                print(f"Error deleting image: {str(img_error)}")
 
         car_info = car.to_dictionaries()
 
