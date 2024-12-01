@@ -3,8 +3,35 @@ import React from "react";
 import Header from "./layouts/Header";
 import Footer from "./layouts/Footer";
 import Head from "next/head";
+import useUserProfile from "@/hooks/useAuthenticatedUser";
+import AdminSidebar from "./layouts/AdminSidebar";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
+    const { user, isLoading, fetchUserData } = useUserProfile();
+
+    const renderLayoutRoleBased = () => {
+        if (isLoading || !user) {
+            return null;
+        }
+
+        return user.role_id === 1 ? (
+            <div className="min-h-screen flex flex-col">
+                <Header />
+                <div className="flex flex-1">
+                    <AdminSidebar />
+                    <main className="flex-1 overflow-auto p-6 bg-gray-50">{children}</main>
+                </div>
+                <Footer />
+            </div>
+        ) : (
+            <div className="min-h-screen flex flex-col">
+                <Header />
+                <main className="flex-1">{children}</main>
+                <Footer />
+            </div>
+        );
+    };
+
     return (
         <>
             <Head>
@@ -21,11 +48,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <meta property="og:image" content="https://themesflat.co/html/ecomus/images/logo/logo.svg" />
             </Head>
             <div className={cn("min-h-screen bg-background bg-gray-100 font-sans antialiased")}>
-                <Header />
+                {renderLayoutRoleBased()}
+
+                {/* <Header />
 
                 <main>{children}</main>
 
-                <Footer />
+                <Footer /> */}
             </div>
         </>
     );
