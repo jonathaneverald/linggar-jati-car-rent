@@ -44,7 +44,7 @@ const useFetchCars = (params: fetchCarsParams) => {
     const url = buildUrl(debouncedParams);
 
     // Use SWR with the debounced URL and configured options
-    const { data, error } = useSWR(url, fetcher, {
+    const { data, error, mutate } = useSWR(url, fetcher, {
         revalidateOnFocus: false, // prevent refetching on window focus
         revalidateOnReconnect: false, // prevent refetching on reconnect
         refreshWhenHidden: false, // avoid refreshing in the background
@@ -61,6 +61,7 @@ const useFetchCars = (params: fetchCarsParams) => {
         pagination: data?.data?.pagination || {},
         isLoading: !error && !data,
         isError: error,
+        mutate,
     };
 };
 

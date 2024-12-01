@@ -29,7 +29,7 @@ export interface CarCategories {
 }
 
 export interface Car {
-    id: string;
+    id: number;
     category_id: string;
     name: string;
     car_brand: string;
