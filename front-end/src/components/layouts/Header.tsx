@@ -20,6 +20,24 @@ const Header = () => {
         setIsProfileModalOpen(false); // Close the modal after profile update
     };
 
+    const renderRoleBasedTitleButton = () => {
+        // If loading or user is not yet loaded, return null or a placeholder
+        if (isLoading || !user) {
+            return null;
+        }
+
+        // Render dashboard for admin (role 1), transactions for others
+        return user.role_id === 1 ? (
+            <Link href="/admin/dashboard">
+                <div className="text-2xl font-bold text-gray-800">Linggar Jati Car Rent</div>
+            </Link>
+        ) : (
+            <Link href="/cars">
+                <div className="text-2xl font-bold text-gray-800">Linggar Jati Car Rent</div>
+            </Link>
+        );
+    };
+
     // Determine the appropriate button based on user role
     const renderRoleBasedButton = () => {
         // If loading or user is not yet loaded, return null or a placeholder
@@ -46,9 +64,7 @@ const Header = () => {
     return (
         <header className="bg-white shadow-sm">
             <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-                <Link href="/cars">
-                    <div className="text-2xl font-bold text-gray-800">Linggar Jati Car Rent</div>
-                </Link>
+                {renderRoleBasedTitleButton()}
                 <div className="flex gap-4">
                     {renderRoleBasedButton()}
                     <Button variant="outline" className="flex items-center gap-2" onClick={toggleProfileModal}>
