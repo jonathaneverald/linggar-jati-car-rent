@@ -9,11 +9,14 @@ import Image from "next/image";
 import AddCarModal from "@/components/cars/CarAddModal";
 import { useUploadImage } from "@/hooks/useUploadCarImage";
 import { useDeleteCar } from "@/hooks/useDeleteCar";
+import UpdateCarModal from "@/components/cars/CarUpdateModal";
 
 const CarPage: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const per_page = 10;
     const [isAddCarModalOpen, setIsAddCarModalOpen] = useState(false);
+    const [isUpdateCarModalOpen, setIsUpdateCarModalOpen] = useState(false);
+    const [selectedCar, setIsSelectedCar] = useState("");
     const { uploadImage, isUploading, error: uploadError } = useUploadImage();
     const { deleteCar, isDeleting, error: deleteError } = useDeleteCar(() => mutate());
 
@@ -28,6 +31,20 @@ const CarPage: React.FC = () => {
         } catch (error) {
             console.error("Error refreshing data:", error);
         }
+    };
+
+    const handleUpdateCar = async () => {
+        try {
+            await mutate(); // Refresh the cars data
+            setIsUpdateCarModalOpen(false); // Close the modal after successful update
+        } catch (error) {
+            console.error("Error refreshing data:", error);
+        }
+    };
+
+    const handleEditButton = (carSlug: string) => {
+        setIsSelectedCar(carSlug);
+        setIsUpdateCarModalOpen(true);
     };
 
     // Memoize params to prevent unnecessary re-fetching
@@ -181,7 +198,7 @@ const CarPage: React.FC = () => {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuItem className="cursor-pointer" onClick={() => console.log("Edit car", car.id)}>
+                                                <DropdownMenuItem className="cursor-pointer" onClick={() => handleEditButton(car.slug)}>
                                                     Edit
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={() => handleDeleteCar(car.id)}>
@@ -217,6 +234,7 @@ const CarPage: React.FC = () => {
                 </div>
             </div>
             <AddCarModal isOpen={isAddCarModalOpen} onOpenChange={setIsAddCarModalOpen} onCreateCar={handleAddCar} />
+            <UpdateCarModal isOpen={isUpdateCarModalOpen} onOpenChange={setIsUpdateCarModalOpen} carSlug={selectedCar} onUpdateCar={handleUpdateCar} />
         </div>
     );
 };
