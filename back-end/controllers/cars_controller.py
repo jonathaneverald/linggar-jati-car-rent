@@ -294,11 +294,11 @@ def show_car_by_slug(slug):
         )
 
 
-@cars_blueprint.put("/cars/<int:car_id>")
+@cars_blueprint.put("/cars/<slug>")
 @cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
 @jwt_required()
 # Only admin can update the car
-def update_car(car_id):
+def update_car(slug):
     Session = sessionmaker(bind=connection)
     s = Session()
     s.begin()
@@ -314,7 +314,9 @@ def update_car(car_id):
             return ResponseHandler.error(message="Unauthorized access, only admin can access this!", status=403)
 
         # Check car's data in database
-        car = s.query(CarModel).filter_by(id=car_id).first()
+        car = s.query(CarModel).filter(CarModel.slug == slug).first()
+        print(car, "Car")
+        print(slug, "Car Slug")
         if not car:
             return ResponseHandler.error(
                 message="Car not found!",
@@ -373,27 +375,35 @@ def update_car(car_id):
             car.color = data["color"]
 
         if "plate_number" in data:
-            existing_plate_number = s.query(CarModel).filter((CarModel.plate_number == data["plate_number"])).first()
-            if existing_plate_number:
-                return ResponseHandler.error(
-                    message="Car already exists! Car's plate number must unique!",
-                    status=409,
+            if data["plate_number"] == car.plate_number:
+                car.plate_number = data["plate_number"]
+            else:
+                existing_plate_number = (
+                    s.query(CarModel).filter((CarModel.plate_number == data["plate_number"])).first()
                 )
-            car.plate_number = data["plate_number"]
+                if existing_plate_number:
+                    return ResponseHandler.error(
+                        message="Car already exists! Car's plate number must unique!",
+                        status=409,
+                    )
+                car.plate_number = data["plate_number"]
 
         if "capacity" in data:
             car.capacity = data["capacity"]
 
         if "registration_number" in data:
-            existing_registration_number = (
-                s.query(CarModel).filter((CarModel.registration_number == data["registration_number"])).first()
-            )
-            if existing_registration_number:
-                return ResponseHandler.error(
-                    message="Car already exists! Car's registration number must unique!",
-                    status=409,
+            if data["registration_number"] == car.registration_number:
+                car.registration_number = data["registration_number"]
+            else:
+                existing_registration_number = (
+                    s.query(CarModel).filter((CarModel.registration_number == data["registration_number"])).first()
                 )
-            car.registration_number = data["registration_number"]
+                if existing_registration_number:
+                    return ResponseHandler.error(
+                        message="Car already exists! Car's registration number must unique!",
+                        status=409,
+                    )
+                car.registration_number = data["registration_number"]
 
         if "price" in data:
             car.price = data["price"]
@@ -401,20 +411,20 @@ def update_car(car_id):
         if "status" in data:
             car.status = data["status"]
 
-        # Handle image update if new image is provided
-        files = request.files.getlist("image")
-        if files:
-            # Delete the previous image from Cloudinary
-            public_id = os.path.splitext(os.path.basename(car.image))[0]
-            cloudinary.uploader.destroy(public_id)
+        # # Handle image update if new image is provided
+        # files = request.files.getlist("image")
+        # if files:
+        #     # Delete the previous image from Cloudinary
+        #     public_id = os.path.splitext(os.path.basename(car.image))[0]
+        #     cloudinary.uploader.destroy(public_id)
 
-            image_urls = []
-            for file in files:
-                upload_result = cloudinary.uploader.upload(file)
-                image_url = upload_result["secure_url"]
-                image_urls.append(image_url)
+        #     image_urls = []
+        #     for file in files:
+        #         upload_result = cloudinary.uploader.upload(file)
+        #         image_url = upload_result["secure_url"]
+        #         image_urls.append(image_url)
 
-            car.image = image_urls[0] if image_urls else car.image
+        #     car.image = image_urls[0] if image_urls else car.image
 
         s.commit()
 
