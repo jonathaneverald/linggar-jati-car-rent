@@ -8,6 +8,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from cerberus import Validator
 from schemas.driver_schema import add_driver_schema, update_driver_schema
 from utils.handle_response import ResponseHandler
+from math import ceil
 
 drivers_blueprint = Blueprint("drivers_blueprint", __name__)
 
@@ -90,9 +91,43 @@ def create_driver():
 @jwt_required()
 def show_all_driver():
     try:
-        drivers = (DriverModel).query.all()
-        drivers_list = [driver.to_dictionaries() for driver in drivers]
-        return ResponseHandler.success(data=drivers_list, status=200)
+        # Get query parameters for pagination
+        page = request.args.get("page", default=1, type=int)
+        per_page = request.args.get("per_page", default=5, type=int)
+
+        drivers = DriverModel.query.paginate(page=page, per_page=per_page, error_out=False)
+        if not drivers:
+            return ResponseHandler.error(message="No drivers found", status=404)
+
+        # # Apply pagination
+        # if page and per_page:
+        #     pagination = car_query.paginate(page=page, per_page=per_page, error_out=False)
+        #     cars = pagination.items
+        #     total_cars = car_query.count()
+        #     total_pages = ceil(total_cars / per_page)
+
+        # drivers = (DriverModel).query.all()
+
+        # drivers_list = [driver.to_dictionaries() for driver in drivers]
+        drivers_list = []
+        for driver in drivers:
+            driver_dict = {
+                **{column.name: getattr(driver, column.name) for column in DriverModel.__table__.columns},
+            }
+            drivers_list.append(driver_dict)
+
+        response_data = {
+            "drivers": drivers_list,
+            "pagination": {
+                "total_drivers": drivers.total,
+                "current_page": drivers.page,
+                "total_pages": drivers.pages,
+                "next_page": page + 1 if page < drivers.pages else None,
+                "prev_page": page - 1 if page > 1 else None,
+            },
+        }
+
+        return ResponseHandler.success(data=response_data, status=200)
 
     except Exception as e:
         return ResponseHandler.error(
