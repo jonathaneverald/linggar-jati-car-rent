@@ -96,10 +96,14 @@ def create_maintenance():
 @jwt_required()
 def show_maintenance():
     try:
+        # Get query parameters for pagination
+        page = request.args.get("page", default=1, type=int)
+        per_page = request.args.get("per_page", default=5, type=int)
+
         car_maintenances = (
-            CarMaintenanceModel.query.join(CarMaintenanceModel, CarModel.id == CarMaintenanceModel.car_id)
+            CarMaintenanceModel.query.join(CarModel, CarModel.id == CarMaintenanceModel.car_id)
             .add_column(CarModel.name)
-            .all()
+            .paginate(page=page, per_page=per_page, error_out=False)
         )
 
         # Create a list of car maintenance dictionaries
@@ -114,7 +118,17 @@ def show_maintenance():
             }
             car_maintenances_list.append(car_maintenance_dict)
 
-        return ResponseHandler.success(data=car_maintenances_list, status=200)
+        response_data = {
+            "car_maintenances": car_maintenances_list,
+            "pagination": {
+                "total_maintenances": car_maintenances.total,
+                "current_page": car_maintenances.page,
+                "total_pages": car_maintenances.pages,
+                "next_page": page + 1 if page < car_maintenances.pages else None,
+                "prev_page": page - 1 if page > 1 else None,
+            },
+        }
+        return ResponseHandler.success(data=response_data, status=200)
 
     except Exception as e:
         return ResponseHandler.error(
