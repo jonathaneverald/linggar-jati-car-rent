@@ -99,16 +99,6 @@ def show_all_driver():
         if not drivers:
             return ResponseHandler.error(message="No drivers found", status=404)
 
-        # # Apply pagination
-        # if page and per_page:
-        #     pagination = car_query.paginate(page=page, per_page=per_page, error_out=False)
-        #     cars = pagination.items
-        #     total_cars = car_query.count()
-        #     total_pages = ceil(total_cars / per_page)
-
-        # drivers = (DriverModel).query.all()
-
-        # drivers_list = [driver.to_dictionaries() for driver in drivers]
         drivers_list = []
         for driver in drivers:
             driver_dict = {
