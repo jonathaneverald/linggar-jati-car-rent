@@ -315,8 +315,6 @@ def update_car(slug):
 
         # Check car's data in database
         car = s.query(CarModel).filter(CarModel.slug == slug).first()
-        print(car, "Car")
-        print(slug, "Car Slug")
         if not car:
             return ResponseHandler.error(
                 message="Car not found!",
