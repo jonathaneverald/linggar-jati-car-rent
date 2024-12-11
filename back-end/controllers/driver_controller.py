@@ -222,16 +222,24 @@ def update_driver(driver_id):
             driver.address = data["address"]
 
         if "phone_number" in data:
-            existing_driver = s.query(DriverModel).filter_by(phone_number=data["phone_number"]).first()
-            if existing_driver and existing_driver.id != driver_id:
-                return ResponseHandler.error(message="Phone number already in use by another driver!", status=409)
-            driver.phone_number = data["phone_number"]
+            if data["phone_number"] == driver.phone_number:
+                driver.phone_number = data["phone_number"]
+            else:
+                existing_driver = s.query(DriverModel).filter_by(phone_number=data["phone_number"]).first()
+                if existing_driver and existing_driver.id != driver_id:
+                    return ResponseHandler.error(message="Phone number already in use by another driver!", status=409)
+                driver.phone_number = data["phone_number"]
 
         if "license_number" in data:
-            existing_driver = s.query(DriverModel).filter_by(license_number=data["license_number"]).first()
-            if existing_driver and existing_driver.id != driver_id:
-                return ResponseHandler.error(message="License number already in use by another driver!", status=409)
-            driver.license_number = data["license_number"]
+            if data["license_number"] == driver.license_number:
+                driver.license_number = data["license_number"]
+            else:
+                existing_driver = s.query(DriverModel).filter_by(license_number=data["license_number"]).first()
+                if existing_driver and existing_driver.id != driver_id:
+                    return ResponseHandler.error(
+                        message="License number already in use by another driver!", status=409
+                    )
+                driver.license_number = data["license_number"]
 
         if "status" in data:
             driver.status = data["status"]
