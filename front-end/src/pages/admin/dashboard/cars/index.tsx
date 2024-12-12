@@ -10,6 +10,7 @@ import AddCarModal from "@/components/cars/CarAddModal";
 import { useUploadImage } from "@/hooks/useUploadCarImage";
 import { useDeleteCar } from "@/hooks/useDeleteCar";
 import UpdateCarModal from "@/components/cars/CarUpdateModal";
+import { formatIntToIDR } from "@/utils/currency";
 
 const CarPage: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -187,7 +188,7 @@ const CarPage: React.FC = () => {
                                             </div>
                                         )}
                                     </TableCell>
-                                    <TableCell>{car.price}</TableCell>
+                                    <TableCell>{formatIntToIDR(car.price)}</TableCell>
                                     <TableCell>{car.status}</TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
