@@ -77,9 +77,33 @@ def create_category():
 @jwt_required()
 def show_all_category():
     try:
-        car_categories = (CarCategoryModel).query.all()
-        car_categories_list = [car_category.to_dictionaries() for car_category in car_categories]
-        return ResponseHandler.success(data=car_categories_list, status=200)
+        # Get query parameters for pagination
+        page = request.args.get("page", default=1, type=int)
+        per_page = request.args.get("per_page", default=5, type=int)
+
+        car_categories = CarCategoryModel.query.paginate(page=page, per_page=per_page, error_out=False)
+        if not car_categories:
+            return ResponseHandler.error(message="No categories found", status=404)
+
+        car_categories_list = []
+        for car_category in car_categories:
+            category_dict = {
+                **{column.name: getattr(car_category, column.name) for column in CarCategoryModel.__table__.columns},
+            }
+            car_categories_list.append(category_dict)
+
+        response_data = {
+            "car_categories": car_categories_list,
+            "pagination": {
+                "total_car_categories": car_categories.total,
+                "current_page": car_categories.page,
+                "total_pages": car_categories.pages,
+                "next_page": page + 1 if page < car_categories.pages else None,
+                "prev_page": page - 1 if page > 1 else None,
+            },
+        }
+
+        return ResponseHandler.success(data=response_data, status=200)
 
     except Exception as e:
         return ResponseHandler.error(
