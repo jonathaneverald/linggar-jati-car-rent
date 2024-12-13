@@ -155,7 +155,7 @@ def show_maintenance_by_id(maintenance_id):
         car_maintenance, car_name = car_maintenance_result
         car_maintenance_dict = {
             **{column.name: getattr(car_maintenance, column.name) for column in CarMaintenanceModel.__table__.columns},
-            "car_brand": car_name,
+            "car_name": car_name,
         }
 
         return ResponseHandler.success(
