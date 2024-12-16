@@ -596,8 +596,13 @@ def generate_report():
             end_date = datetime.strptime(f"01 {to_month} {to_year}", "%d %B %Y").date()
 
             # Adjust end_date to the last day of the month
-            end_date = datetime(end_date.year, end_date.month + 1, 1) - timedelta(days=1)
+            if end_date.month == 12:
+                end_date = datetime(end_date.year + 1, 1, 1) - timedelta(days=1)  # Roll over to next year
+            else:
+                end_date = datetime(end_date.year, end_date.month + 1, 1) - timedelta(days=1)
+
             end_date = end_date.date()
+
         except ValueError as e:
             return ResponseHandler.error(
                 message="Invalid month format!",
@@ -739,7 +744,7 @@ def generate_report():
         wb.save(output)
         output.seek(0)
 
-        filename = f"transaction_report_{from_month}_to_{to_month}.xlsx"
+        filename = f"transaction_report_{from_month}{from_year}_to_{to_month}{to_year}.xlsx"
 
         # Send the Excel file as a response
         response = send_file(
@@ -763,3 +768,4 @@ def generate_report():
 
     finally:
         s.close()
+        print("Session closed")
