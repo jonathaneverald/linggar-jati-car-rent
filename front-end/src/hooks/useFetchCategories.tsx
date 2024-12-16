@@ -17,7 +17,7 @@ export const useFetchCategories = (): UseCategoriesReturn => {
                     throw new Error("No authentication token found");
                 }
 
-                const response = await axios.get<CategoriesData>("http://127.0.0.1:5000/car-categories", {
+                const response = await axios.get<CategoriesData>("http://127.0.0.1:5000/car-categories/filter", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

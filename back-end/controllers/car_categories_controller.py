@@ -113,6 +113,22 @@ def show_all_category():
         )
 
 
+@car_categories_blueprint.get("/car-categories/filter")
+@cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
+@jwt_required()
+def show_all_category_filter():
+    try:
+        car_categories = (CarCategoryModel).query.all()
+        car_categories_list = [car_category.to_dictionaries() for car_category in car_categories]
+        return ResponseHandler.success(data=car_categories_list, status=200)
+    except Exception as e:
+        return ResponseHandler.error(
+            message="An error occured while showing car categories",
+            data=str(e),
+            status=500,
+        )
+
+
 @car_categories_blueprint.get("/car-categories/<int:id>")
 @cross_origin(origin="localhost", headers=["Content-Type", "Authorization"])
 def show_category_by_id(id):
