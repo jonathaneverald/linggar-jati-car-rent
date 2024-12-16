@@ -11,6 +11,7 @@ import { useUploadImage } from "@/hooks/useUploadCarImage";
 import { useDeleteCar } from "@/hooks/useDeleteCar";
 import UpdateCarModal from "@/components/cars/CarUpdateModal";
 import { formatIntToIDR } from "@/utils/currency";
+import ImageModal from "@/components/ImageModal";
 
 const CarPage: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -18,6 +19,7 @@ const CarPage: React.FC = () => {
     const [isAddCarModalOpen, setIsAddCarModalOpen] = useState(false);
     const [isUpdateCarModalOpen, setIsUpdateCarModalOpen] = useState(false);
     const [selectedCar, setIsSelectedCar] = useState("");
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const { uploadImage, isUploading, error: uploadError } = useUploadImage();
     const { deleteCar, isDeleting, error: deleteError } = useDeleteCar(() => mutate());
 
@@ -173,16 +175,15 @@ const CarPage: React.FC = () => {
                                             </div>
                                         )}
                                         {car.image != null && (
-                                            <div className="relative h-16 w-16">
+                                            <div className="relative h-16 w-16 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setSelectedImage(car.image)}>
                                                 <Image
                                                     src={car.image}
                                                     alt={`${car.name} image`}
                                                     fill
                                                     className="object-cover rounded-md"
                                                     onError={(e) => {
-                                                        // Fallback to a placeholder if image fails to load
                                                         const target = e.target as HTMLImageElement;
-                                                        target.src = "/placeholder-car.png"; // Make sure to add a placeholder image in your public folder
+                                                        target.src = "/placeholder-car.png";
                                                     }}
                                                 />
                                             </div>
@@ -234,6 +235,8 @@ const CarPage: React.FC = () => {
                     </Button>
                 </div>
             </div>
+            <ImageModal isOpen={!!selectedImage} onClose={() => setSelectedImage(null)} imageUrl={selectedImage || ""} />
+
             <AddCarModal isOpen={isAddCarModalOpen} onOpenChange={setIsAddCarModalOpen} onCreateCar={handleAddCar} />
             <UpdateCarModal isOpen={isUpdateCarModalOpen} onOpenChange={setIsUpdateCarModalOpen} carSlug={selectedCar} onUpdateCar={handleUpdateCar} />
         </div>
