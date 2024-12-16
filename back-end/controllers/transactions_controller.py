@@ -265,12 +265,16 @@ def show_all_transaction():
             if driver_info:
                 driver_data = {"driver_name": driver_info.name, "driver_phone_number": driver_info.phone_number}
 
+            date_difference = transaction.end_date - transaction.start_date
+            rent_duration = date_difference.days
+
             # Append datas into transactions_data
             transactions_data.append(
                 {
                     **{
                         column.name: getattr(transaction, column.name) for column in TransactionModel.__table__.columns
                     },
+                    "rent_duration": rent_duration,
                     "car_data": car_data,
                     "driver_data": driver_data,
                 }
