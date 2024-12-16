@@ -8,15 +8,15 @@ const AdminSidebar = () => {
 
     const navItems = [
         {
-            title: "Dashboard",
+            title: "All Transactions",
             href: "/admin/dashboard",
             icon: LayoutDashboard,
         },
-        {
-            title: "Users",
-            href: "/admin/dashboard/users",
-            icon: Users,
-        },
+        // {
+        //     title: "Users",
+        //     href: "/admin/dashboard/users",
+        //     icon: Users,
+        // },
         {
             title: "Cars",
             href: "/admin/dashboard/cars",
