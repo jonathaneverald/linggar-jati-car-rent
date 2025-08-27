@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { MoreHorizontal, Plus, ChevronLeft, ChevronRight, ImagePlus } from "lucide-react";
 import { Car } from "@/types/car";
 import useFetchCars from "@/hooks/useFetchCars";
 import Image from "next/image";
@@ -60,6 +60,7 @@ const CarPage: React.FC = () => {
     );
 
     const { cars, pagination, isLoading, isError, mutate } = useFetchCars(params);
+    console.log("Cars: ", cars);
 
     const handleNextPage = () => {
         if (currentPage < pagination.total_pages) {
@@ -83,19 +84,21 @@ const CarPage: React.FC = () => {
         }
     };
 
+    // --- MODIFIED: This handler now supports multiple files ---
     const handleUploadImage = async (carId: number) => {
-        // Open file dialog and get the selected file
         const fileInput = document.createElement("input");
         fileInput.type = "file";
         fileInput.accept = "image/*";
+        fileInput.multiple = true; // Allow multiple file selection
         fileInput.onchange = async (event) => {
-            const file = (event.target as HTMLInputElement).files?.[0];
-            if (file) {
-                const success = await uploadImage(carId, file);
+            const fileList = (event.target as HTMLInputElement).files;
+            if (fileList && fileList.length > 0) {
+                const filesArray = Array.from(fileList); // Convert FileList to array
+                const success = await uploadImage(carId, filesArray); // Pass the array to the hook
                 if (success) {
-                    console.log("Car image uploaded successfully");
+                    console.log("Car images uploaded successfully");
                 } else {
-                    console.error("Failed to upload car image:", uploadError);
+                    console.error("Failed to upload car images:", uploadError);
                 }
             }
         };
@@ -148,69 +151,100 @@ const CarPage: React.FC = () => {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            cars.map((car: Car, index: number) => (
-                                <TableRow key={car.id}>
-                                    <TableCell className="font-medium">{index + 1}</TableCell>
-                                    <TableCell className="font-medium">{car.id}</TableCell>
-                                    <TableCell>{car.name}</TableCell>
-                                    <TableCell>{car.car_brand}</TableCell>
-                                    <TableCell>{car.type}</TableCell>
-                                    <TableCell>{car.capacity}</TableCell>
-                                    <TableCell>{car.color}</TableCell>
-                                    <TableCell>{car.fuel}</TableCell>
-                                    <TableCell>{car.transmission}</TableCell>
-                                    <TableCell>{car.plate_number}</TableCell>
-                                    <TableCell>
-                                        {car.image === null && (
-                                            <div className="relative h-16 w-16 flex items-center justify-center">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="hover:bg-blue-50 hover:border-blue-300 transition-colors"
-                                                    onClick={() => handleUploadImage(car.id)}
-                                                    disabled={isUploading}
-                                                >
-                                                    Upload Car Image
-                                                </Button>
+                            cars.map((car: Car, index: number) => {
+                                // Calculate total images for conditional rendering
+                                const totalImages = (car.image ? 1 : 0) + (car.additional_images?.length || 0);
+
+                                return (
+                                    <TableRow key={car.id}>
+                                        <TableCell className="font-medium">{index + 1}</TableCell>
+                                        <TableCell className="font-medium">{car.id}</TableCell>
+                                        <TableCell>{car.name}</TableCell>
+                                        <TableCell>{car.car_brand}</TableCell>
+                                        <TableCell>{car.type}</TableCell>
+                                        <TableCell>{car.capacity}</TableCell>
+                                        <TableCell>{car.color}</TableCell>
+                                        <TableCell>{car.fuel}</TableCell>
+                                        <TableCell>{car.transmission}</TableCell>
+                                        <TableCell>{car.plate_number}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                {/* Case 1: No images at all */}
+                                                {!car.image && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="whitespace-nowrap hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                                        onClick={() => handleUploadImage(car.id)}
+                                                        disabled={isUploading}
+                                                    >
+                                                        Upload Car Image
+                                                    </Button>
+                                                )}
+
+                                                {/* Case 2: Display main image if it exists */}
+                                                {car.image && (
+                                                    <div className="relative h-16 w-16 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setSelectedImage(car.image)}>
+                                                        <Image
+                                                            src={car.image}
+                                                            alt={`${car.name} main image`}
+                                                            fill
+                                                            className="object-cover rounded-md"
+                                                            onError={(e) => {
+                                                                const target = e.target as HTMLImageElement;
+                                                                target.src = "/placeholder-car.png";
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                {/* Case 3: Display additional images */}
+                                                {car.additional_images?.map((image) => (
+                                                    <div key={image.id} className="relative h-16 w-16 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setSelectedImage(image.url)}>
+                                                        <Image
+                                                            src={image.url}
+                                                            alt={`${car.name} additional image`}
+                                                            fill
+                                                            className="object-cover rounded-md"
+                                                            onError={(e) => {
+                                                                const target = e.target as HTMLImageElement;
+                                                                target.src = "/placeholder-car.png";
+                                                            }}
+                                                        />
+                                                    </div>
+                                                ))}
+
+                                                {/* Case 4: Show Add button if there's at least one image AND the total is less than 3 */}
+                                                {car.image && totalImages < 3 && (
+                                                    <Button variant="outline" size="icon" className="h-16 w-16 flex-shrink-0" onClick={() => handleUploadImage(car.id)} disabled={isUploading}>
+                                                        <ImagePlus className="h-6 w-6" />
+                                                    </Button>
+                                                )}
                                             </div>
-                                        )}
-                                        {car.image != null && (
-                                            <div className="relative h-16 w-16 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setSelectedImage(car.image)}>
-                                                <Image
-                                                    src={car.image}
-                                                    alt={`${car.name} image`}
-                                                    fill
-                                                    className="object-cover rounded-md"
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement;
-                                                        target.src = "/placeholder-car.png";
-                                                    }}
-                                                />
-                                            </div>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>{formatIntToIDR(car.price)}</TableCell>
-                                    <TableCell>{car.status}</TableCell>
-                                    <TableCell className="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                                    <span className="sr-only">Open menu</span>
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem className="cursor-pointer" onClick={() => handleEditButton(car.slug)}>
-                                                    Edit
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={() => handleDeleteCar(car.id)}>
-                                                    Delete
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            ))
+                                        </TableCell>
+                                        <TableCell>{formatIntToIDR(car.price)}</TableCell>
+                                        <TableCell>{car.status}</TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                        <span className="sr-only">Open menu</span>
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem className="cursor-pointer" onClick={() => handleEditButton(car.slug)}>
+                                                        Edit
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={() => handleDeleteCar(car.id)}>
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
                         )}
                     </TableBody>
                 </Table>

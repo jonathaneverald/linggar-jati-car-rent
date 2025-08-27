@@ -52,6 +52,7 @@ const CarDetails: React.FC<CarDetailsProps> = ({ car, error }) => {
             <div className="container mx-auto">
                 <CarDetailsCard
                     image={car.image}
+                    additional_images={car.additional_images}
                     type={car.type}
                     transmission={car.transmission}
                     car_brand={car.car_brand}

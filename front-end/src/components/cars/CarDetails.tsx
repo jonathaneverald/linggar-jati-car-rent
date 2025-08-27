@@ -13,13 +13,14 @@ import { format } from "date-fns-tz";
 import useCreateTransaction from "@/hooks/useCreateTransaction";
 import useFetchAvailableDrivers from "@/hooks/useFetchAvailableDrivers";
 import { getToken } from "@/utils/tokenUtils";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
 
 type Driver = {
     id: string;
     name: string;
 };
 
-const CarDetailsCard: React.FC<CarCardDetailProps> = ({ image, type, transmission, car_brand, car_name, capacity, fuel, color, price, status }) => {
+const CarDetailsCard: React.FC<CarCardDetailProps> = ({ image, additional_images, type, transmission, car_brand, car_name, capacity, fuel, color, price, status }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [startDate, setStartDate] = useState("");
     const [showDateInput, setShowDateInput] = useState(true);
@@ -32,6 +33,7 @@ const CarDetailsCard: React.FC<CarCardDetailProps> = ({ image, type, transmissio
     const [alertType, setAlertType] = useState<"success" | "error" | "info">("success");
     const [alertMessage, setAlertMessage] = useState("");
     const [availableDrivers, setAvailableDrivers] = useState<Driver[]>([]);
+    const allImages = [image, ...(additional_images?.map((img) => img.url) || [])].filter(Boolean) as string[];
 
     const token = getToken();
 
@@ -121,10 +123,36 @@ const CarDetailsCard: React.FC<CarCardDetailProps> = ({ image, type, transmissio
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                     {/* Left side - Image */}
                     <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px] bg-gray-100 rounded-lg overflow-hidden">
-                        {image ? (
-                            <Image src={image} alt={car_name} fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" priority />
+                        {allImages.length > 1 ? (
+                            // If there's more than one image, render the Carousel
+                            <Carousel className="w-full h-full">
+                                <CarouselContent className="-ml-0 h-full">
+                                    {allImages.map((imgUrl, index) => (
+                                        <CarouselItem key={index} className="relative basis-full pl-0 h-[300px] md:h-[400px] lg:h-[500px]">
+                                            <Image
+                                                src={imgUrl}
+                                                alt={`${car_name} image ${index + 1}`}
+                                                fill
+                                                className="object-cover"
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                priority={index === 0}
+                                            />
+                                        </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                                {/* Add navigation buttons inside the container */}
+                                <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10" />
+                                <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10" />
+                            </Carousel>
                         ) : (
-                            <div className="flex items-center justify-center w-full h-full text-gray-400">Car Image</div>
+                            // Otherwise, render a single static image (or a placeholder)
+                            <>
+                                {allImages.length === 1 ? (
+                                    <Image src={allImages[0]} alt={car_name} fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" priority />
+                                ) : (
+                                    <div className="flex items-center justify-center w-full h-full text-gray-400">Car Image</div>
+                                )}
+                            </>
                         )}
                     </div>
 

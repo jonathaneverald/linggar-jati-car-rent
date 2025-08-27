@@ -31,6 +31,8 @@ class CarModel(db.Model):
 
     car_maintenances = relationship("CarMaintenanceModel", backref="cars", lazy=True)
     transactions = relationship("TransactionModel", backref="cars", lazy=True)
+    # New relationship for additional images
+    additional_images = relationship("CarImageModel", backref="cars", lazy=True, cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Car {self.id}>"
@@ -49,6 +51,9 @@ class CarModel(db.Model):
             "registration_number": self.registration_number,
             "price": self.price,
             "image": self.image,
+            "additional_images": [
+                img.to_dictionaries() for img in self.additional_images
+            ],  # Include additional images
             "status": self.status,
             "created_at": self.created_at,
             "updated_at": self.updated_at,

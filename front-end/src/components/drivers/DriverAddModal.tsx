@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Label } from "../ui/label";
@@ -34,6 +34,7 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onOpenChange, o
         handleSubmit,
         reset,
         formState: { errors },
+        control,
         clearErrors,
     } = useForm<FormData>({
         resolver: zodResolver(FormSchema),
@@ -103,7 +104,7 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onOpenChange, o
                             <Input id="driver-name" {...register("name")} className="w-full px-3 py-2 border rounded-lg" />
                             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
                         </div>
-                        <div>
+                        {/* <div>
                             <Label htmlFor="gender" className="block font-medium mb-1">
                                 Gender
                             </Label>
@@ -116,6 +117,27 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onOpenChange, o
                                     <SelectItem value="Female">Female</SelectItem>
                                 </SelectContent>
                             </Select>
+                            {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender.message}</p>}
+                        </div> */}
+                        <div>
+                            <Label htmlFor="gender" className="block font-medium mb-1">
+                                Gender
+                            </Label>
+                            <Controller
+                                name="gender"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select gender" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Male">Male</SelectItem>
+                                            <SelectItem value="Female">Female</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                             {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender.message}</p>}
                         </div>
                         <div>
@@ -146,7 +168,7 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onOpenChange, o
                             <Input id="license-number" {...register("license_number")} className="w-full px-3 py-2 border rounded-lg" />
                             {errors.license_number && <p className="text-red-500 text-sm mt-1">{errors.license_number.message}</p>}
                         </div>
-                        <div>
+                        {/* <div>
                             <Label htmlFor="status" className="block font-medium mb-1">
                                 Status
                             </Label>
@@ -159,6 +181,27 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onOpenChange, o
                                     <SelectItem value="Unavailable">Unavailable</SelectItem>
                                 </SelectContent>
                             </Select>
+                            {errors.status && <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>}
+                        </div> */}
+                        <div>
+                            <Label htmlFor="status" className="block font-medium mb-1">
+                                Status
+                            </Label>
+                            <Controller
+                                name="status"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Available">Available</SelectItem>
+                                            <SelectItem value="Unavailable">Unavailable</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                             {errors.status && <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>}
                         </div>
                     </div>

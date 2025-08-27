@@ -53,11 +53,18 @@ const Header = () => {
                 </Link>
             </Button>
         ) : (
-            <Button variant="outline" className="flex items-center gap-2" asChild>
-                <Link href="/transactions-customer">
-                    <span>Transaction</span>
-                </Link>
-            </Button>
+            <>
+                <Button variant="outline" className="flex items-center gap-2" asChild>
+                    <Link href="/terms-conditions">
+                        <span>Terms & Conditions</span>
+                    </Link>
+                </Button>
+                <Button variant="outline" className="flex items-center gap-2" asChild>
+                    <Link href="/transactions-customer">
+                        <span>Transaction</span>
+                    </Link>
+                </Button>
+            </>
         );
     };
 

@@ -94,7 +94,7 @@ def login():
             return ResponseHandler.error(message="Invalid password!", status=403)
 
         login_user(user)
-        access_token = create_access_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
 
         return ResponseHandler.success(
             data={"message": "Login success!", "access_token": access_token, "user": user.to_dictionaries()},

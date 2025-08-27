@@ -12,7 +12,7 @@ export const useUploadImage = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const uploadImage = async (carId: number, carImage: File): Promise<boolean> => {
+    const uploadImage = async (carId: number, carImages: File[]): Promise<boolean> => {
         setIsUploading(true);
         setError(null);
 
@@ -20,7 +20,9 @@ export const useUploadImage = () => {
             const token = getToken();
 
             const formData = new FormData();
-            formData.append("image", carImage);
+            carImages.forEach((carImage) => {
+                formData.append("images", carImage);
+            });
 
             const response = await axios.put<UploadImageResponse>(`http://127.0.0.1:5000/cars/upload-image/${carId}`, formData, {
                 headers: {

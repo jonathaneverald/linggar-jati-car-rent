@@ -4,6 +4,7 @@ from connector.mysql_connector import connection
 from models.cars import CarModel
 from models.car_categories import CarCategoryModel
 from models.users import UserModel
+from models.car_images import CarImageModel
 from sqlalchemy.orm import sessionmaker
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from cerberus import Validator
@@ -149,32 +150,50 @@ def upload_car_image(car_id):
         if current_user.role_id != 1:
             return ResponseHandler.error(message="Unauthorized access, only customer can access this!", status=403)
 
-        # Check transaction's data in database
+        # Check car's data in database
         car = s.query(CarModel).filter_by(id=car_id).first()
         if not car:
             return ResponseHandler.error(message="Car not found!", status=404)
 
         # Check if the car image is exists
-        if car.image not in [None, ""]:
-            return ResponseHandler.error(message="Car image already exists!", status=400)
+        # if car.image not in [None, ""]:
+        #     return ResponseHandler.error(message="Car image already exists!", status=400)
 
         # Get the uploaded files from the request
-        files = request.files.getlist("image")
-        if not files:
-            return ResponseHandler.error(message="Car Image is required", status=400)
+        files = request.files.getlist("images")
+        # if not files:
+        #     return ResponseHandler.error(message="Car Image is required", status=400)
+        if not files or files[0].filename == "":
+            return ResponseHandler.error(message="At least one car image is required", status=400)
 
         image_urls = []
 
         for file in files:
+            # upload_result = cloudinary.uploader.upload(file)
+            # image_url = upload_result["secure_url"]
+            # image_urls.append(image_url)
+            # You might want to add validation here for file type, size, etc.
             upload_result = cloudinary.uploader.upload(file)
-            image_url = upload_result["secure_url"]
-            image_urls.append(image_url)
+            image_urls.append(upload_result["secure_url"])
 
-        car.image = image_urls[0]
+        if not car.image:
+            car.image = image_urls.pop(0)  # Take the first URL and remove it from the list
+
+        for url in image_urls:
+            new_image = CarImageModel(car_id=car.id, url=url)
+            # By adding to the session, you are marking it for insertion.
+            # SQLAlchemy is smart enough to handle the relationship automatically as well,
+            # but being explicit by adding it to the session is clear.
+            s.add(new_image)
+            # Alternatively, and more cleanly with relationships set up:
+            # new_image = CarImageModel(url=url)
+            # car.additional_images.append(new_image)
+
+        # car.image = image_urls[0]
         s.commit()
 
         return ResponseHandler.success(
-            message="Car Image successfully added!",
+            message="Car Images successfully added!",
             data=car.to_dictionaries(),
             status=200,
         )
@@ -224,13 +243,22 @@ def show_all_car():
             cars = car_query.all()
 
         # Create a list of car dictionaries
+        # cars_list = []
+        # for car, car_brand, car_type in cars:
+        #     car_dict = {
+        #         **{column.name: getattr(car, column.name) for column in CarModel.__table__.columns},
+        #         "car_brand": car_brand,
+        #         "type": car_type,
+        #     }
+        #     cars_list.append(car_dict)
+
         cars_list = []
-        for car, car_brand, car_type in cars:
-            car_dict = {
-                **{column.name: getattr(car, column.name) for column in CarModel.__table__.columns},
-                "car_brand": car_brand,
-                "type": car_type,
-            }
+        for car, car_brand_val, car_type_val in cars:
+            # Use the to_dictionaries() method which already includes additional_images
+            car_dict = car.to_dictionaries()
+            # Then, simply add the extra data from the join
+            car_dict["car_brand"] = car_brand_val
+            car_dict["type"] = car_type_val
             cars_list.append(car_dict)
 
         if page and per_page:
@@ -274,11 +302,17 @@ def show_car_by_slug(slug):
 
         car, car_brand, car_type = car_result
 
-        car_dict = {
-            **{column.name: getattr(car, column.name) for column in CarModel.__table__.columns},
-            "car_brand": car_brand,
-            "type": car_type,
-        }
+        # car_dict = {
+        #     **{column.name: getattr(car, column.name) for column in CarModel.__table__.columns},
+        #     "car_brand": car_brand,
+        #     "type": car_type,
+        # }
+        # --- REFACTORED LOGIC ---
+        # Use the to_dictionaries() method which already includes additional_images
+        car_dict = car.to_dictionaries()
+        # Then, simply add the extra data from the join
+        car_dict["car_brand"] = car_brand
+        car_dict["type"] = car_type
 
         return ResponseHandler.success(
             message="Car retrieved successfully",

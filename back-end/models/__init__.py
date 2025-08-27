@@ -5,3 +5,4 @@ from models.cars import CarModel
 from models.car_maintenances import CarMaintenanceModel
 from models.drivers import DriverModel
 from models.transactions import TransactionModel
+from models.car_images import CarImageModel

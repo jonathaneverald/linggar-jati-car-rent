@@ -14,6 +14,7 @@ export interface CarCardDetailProps {
     car_brand: string;
     car_name: string;
     image: string;
+    additional_images: CarImage[];
     status: string;
     color: string;
     transmission: string;
@@ -37,6 +38,7 @@ export interface Car {
     color: string;
     fuel: string;
     image: string;
+    additional_images: CarImage[];
     plate_number: string;
     price: number;
     registration_number: number;
@@ -44,6 +46,11 @@ export interface Car {
     status: string;
     transmission: string;
     type: string;
+}
+
+export interface CarImage {
+    id: number;
+    url: string;
 }
 
 export interface CategoriesData {
